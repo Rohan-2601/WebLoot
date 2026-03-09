@@ -1,21 +1,17 @@
-import cheerio from "cheerio"
+import * as cheerio from "cheerio";
 
-export function extractIcons(html, baseUrl){
+export function extractIcons(html, baseUrl) {
+  const $ = cheerio.load(html);
 
-  const $ = cheerio.load(html)
+  let icons = [];
 
-  let icons = []
+  $("link[rel='icon']").each((i, el) => {
+    const href = $(el).attr("href");
 
-  $("link[rel='icon']").each((i,el)=>{
-
-    const href = $(el).attr("href")
-
-    if(href){
-      icons.push(new URL(href, baseUrl).href)
+    if (href) {
+      icons.push(new URL(href, baseUrl).href);
     }
+  });
 
-  })
-
-  return icons
-
+  return icons;
 }

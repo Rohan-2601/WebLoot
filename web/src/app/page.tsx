@@ -71,12 +71,42 @@ export default function Home() {
       </section>
 
       {/* ── EXTRACTOR SECTION ── */}
-      <section id="extract" className="relative bg-black py-24 px-6">
-        {/* Subtle orange top glow */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-175 h-px bg-orange-500/30" />
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-100 h-20 bg-orange-500/10 blur-3xl pointer-events-none" />
+      <section
+        id="extract"
+        className="relative bg-black py-28 px-6 overflow-hidden"
+      >
+        {/* Ambient glows */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-175 h-px bg-linear-to-r from-transparent via-orange-500/30 to-transparent" />
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-75 h-28 bg-orange-500/7 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-125 h-125 rounded-full bg-orange-600/4 blur-[120px] pointer-events-none" />
+        <div className="absolute bottom-0 right-0 w-100 h-100 rounded-full bg-amber-500/4 blur-[100px] pointer-events-none" />
 
         <div className="max-w-6xl mx-auto">
+          {/* Section heading */}
+          <div className="text-center mb-20">
+            <p className="text-orange-500/50 text-[10px] font-mono uppercase tracking-[0.35em] mb-5">
+              — Asset Extractor
+            </p>
+            <h2 className="text-4xl md:text-6xl font-black text-white tracking-tight leading-none mb-5">
+              Drop a URL.{" "}
+              <span
+                style={{
+                  backgroundImage:
+                    "linear-gradient(135deg, #fb923c 0%, #ea580c 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                Get everything.
+              </span>
+            </h2>
+            <p className="text-zinc-500 text-base max-w-sm mx-auto leading-relaxed">
+              Every image, icon, and video hidden inside any webpage — extracted
+              in seconds.
+            </p>
+          </div>
+
           <Analyzer />
         </div>
       </section>

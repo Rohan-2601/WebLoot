@@ -25,7 +25,6 @@ export function Analyzer() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [data, setData] = useState<AnalyzeData | null>(null);
-
   const [activeTab, setActiveTab] = useState<"images" | "icons" | "videos">(
     "images",
   );
@@ -33,11 +32,9 @@ export function Analyzer() {
   const analyzeUrl = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!url) return;
-
     setLoading(true);
     setError("");
     setData(null);
-
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
       const response = await fetch(`${apiUrl}/analyze`, {
@@ -45,13 +42,9 @@ export function Analyzer() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ url }),
       });
-
       const result = await response.json();
-
-      if (!response.ok) {
+      if (!response.ok)
         throw new Error(result.error || "Failed to analyze URL");
-      }
-
       setData(result);
       if (result.images.length === 0 && result.icons.length > 0)
         setActiveTab("icons");
@@ -67,21 +60,43 @@ export function Analyzer() {
 
   const activeAssets = data ? data[activeTab] : [];
 
+  const tabs = [
+    {
+      id: "images" as const,
+      icon: ImageIcon,
+      label: "Images",
+      count: data?.images.length ?? 0,
+    },
+    {
+      id: "icons" as const,
+      icon: Shapes,
+      label: "Icons",
+      count: data?.icons.length ?? 0,
+    },
+    {
+      id: "videos" as const,
+      icon: Video,
+      label: "Videos",
+      count: data?.videos.length ?? 0,
+    },
+  ];
+
   return (
     <div className="w-full max-w-6xl mx-auto flex flex-col items-center">
-      {/* Search Bar */}
+      {/* ── Search Bar ── */}
       <motion.form
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, delay: 0.1 }}
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
         onSubmit={analyzeUrl}
-        className="w-full max-w-3xl relative group mb-12"
+        className="w-full max-w-2xl relative group mb-16"
       >
-        {/* Orange glow behind search */}
-        <div className="absolute inset-0 bg-linear-to-r from-orange-500/40 to-amber-500/40 rounded-full blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-500" />
-        <div className="relative flex items-center bg-white/5 backdrop-blur-2xl rounded-full border border-orange-400/20 focus-within:border-orange-400/50 transition-colors p-2 shadow-lg shadow-orange-900/20 focus-within:shadow-orange-500/30">
-          <div className="pl-4 pr-2 text-orange-300/70 group-focus-within:text-orange-200 transition-colors">
-            <Link2 className="w-6 h-6 group-focus-within:rotate-12 transition-transform duration-300" />
+        {/* Glow halo — only visible on focus */}
+        <div className="absolute -inset-px rounded-2xl bg-linear-to-r from-orange-500/40 to-amber-400/40 opacity-0 group-focus-within:opacity-100 blur-lg transition-opacity duration-500 pointer-events-none" />
+
+        <div className="relative flex items-center gap-3 bg-zinc-900 border border-zinc-800 focus-within:border-orange-500/50 rounded-2xl transition-colors duration-300 shadow-2xl shadow-black/60 overflow-hidden">
+          <div className="pl-5 text-zinc-600 group-focus-within:text-orange-400 transition-colors duration-300 shrink-0">
+            <Link2 className="w-5 h-5" />
           </div>
           <input
             type="url"
@@ -89,100 +104,105 @@ export function Analyzer() {
             placeholder="https://example.com"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            className="flex-1 bg-transparent border-none outline-none text-white text-lg placeholder:text-orange-300/40 px-2 py-4"
+            className="flex-1 min-w-0 bg-transparent border-none outline-none text-white text-base placeholder:text-zinc-600 py-5"
           />
-          <button
-            type="submit"
-            disabled={loading}
-            className="flex items-center gap-2 bg-orange-500 text-white hover:bg-orange-400 shadow-lg shadow-orange-900/30 hover:shadow-orange-500/40 hover:-translate-y-0.5 active:scale-95 active:translate-y-0 px-8 py-4 rounded-full font-semibold transition-all cursor-pointer disabled:opacity-50 disabled:hover:bg-orange-500 disabled:hover:translate-y-0 disabled:active:scale-100 disabled:cursor-not-allowed group/btn"
-          >
-            {loading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <Search className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
-            )}
-            {loading ? "Looting..." : "Extract"}
-          </button>
+          <div className="p-2 shrink-0">
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex items-center gap-2 bg-orange-500 hover:bg-orange-400 disabled:opacity-40 disabled:pointer-events-none text-white px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-200 shadow-lg shadow-orange-950/60 hover:shadow-orange-500/30 hover:-translate-y-px active:translate-y-0 active:scale-95 cursor-pointer whitespace-nowrap"
+            >
+              {loading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Search className="w-4 h-4" />
+              )}
+              {loading ? "Looting..." : "Extract"}
+            </button>
+          </div>
         </div>
       </motion.form>
 
-      {/* Error Message */}
+      {/* ── Error ── */}
       <AnimatePresence>
         {error && (
           <motion.div
-            initial={{ opacity: 0, y: -10 }}
+            initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            className="flex items-center gap-3 bg-orange-950/40 text-orange-300 px-6 py-4 rounded-2xl border border-orange-500/30 mb-8 backdrop-blur-md"
+            exit={{ opacity: 0, scale: 0.96 }}
+            className="flex items-center gap-3 bg-red-950/50 text-red-300 px-5 py-3.5 rounded-xl border border-red-500/20 mb-12 text-sm max-w-xl"
           >
-            <AlertCircle className="w-5 h-5" />
+            <AlertCircle className="w-4 h-4 shrink-0" />
             <p>{error}</p>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Results Area */}
+      {/* ── Results ── */}
       <AnimatePresence mode="wait">
         {data && (
           <motion.div
             key="results"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45 }}
             className="w-full"
           >
-            {/* Stats & Tabs */}
-            <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-10 pb-6 border-b border-orange-400/20">
-              <div className="flex bg-white/5 backdrop-blur-xl rounded-full p-1 border border-orange-400/20 shadow-inner shadow-orange-900/10">
-                {[
-                  { id: "images", icon: ImageIcon, count: data.images.length },
-                  { id: "icons", icon: Shapes, count: data.icons.length },
-                  { id: "videos", icon: Video, count: data.videos.length },
-                ].map((tab) => {
-                  const isActive = activeTab === tab.id;
-                  const Icon = tab.icon;
-                  return (
-                    <button
-                      key={tab.id}
-                      onClick={() => setActiveTab(tab.id as any)}
-                      className={`relative flex items-center gap-2 px-6 py-3 rounded-full font-bold transition-all duration-300 cursor-pointer z-10 hover:bg-white/10 active:scale-95 ${
+            {/* Stat-card tabs */}
+            <div className="grid grid-cols-3 gap-3 mb-10">
+              {tabs.map(({ id, icon: Icon, label, count }) => {
+                const isActive = activeTab === id;
+                return (
+                  <motion.button
+                    key={id}
+                    onClick={() => setActiveTab(id)}
+                    whileTap={{ scale: 0.97 }}
+                    className={`relative flex flex-col items-center justify-center gap-2 py-7 rounded-2xl border cursor-pointer transition-all duration-300 overflow-hidden
+                      ${
                         isActive
-                          ? "text-white"
-                          : "text-orange-200/60 hover:text-orange-100"
+                          ? "bg-orange-500/8 border-orange-500/40 shadow-xl shadow-orange-950/40"
+                          : "bg-zinc-900/50 border-zinc-800/80 hover:border-zinc-700 hover:bg-zinc-900"
                       }`}
-                    >
-                      {isActive && (
-                        <motion.div
-                          layoutId="activeTab"
-                          className="absolute inset-0 bg-orange-500/70 shadow-md shadow-orange-900/40 rounded-full border border-orange-400/40 -z-10"
-                          transition={{
-                            type: "spring",
-                            stiffness: 400,
-                            damping: 25,
-                          }}
-                        />
-                      )}
-                      <Icon
-                        className={`w-4 h-4 transition-transform ${isActive ? "scale-110 text-orange-100" : ""}`}
+                  >
+                    {/* Active gradient wash */}
+                    {isActive && (
+                      <motion.div
+                        layoutId="tabGlow"
+                        className="absolute inset-0 bg-linear-to-b from-orange-500/10 via-transparent to-transparent pointer-events-none"
+                        transition={{
+                          type: "spring",
+                          stiffness: 400,
+                          damping: 30,
+                        }}
                       />
-                      <span className="capitalize">{tab.id}</span>
-                      <span
-                        className={`text-xs py-0.5 px-2 rounded-full font-bold shadow-sm ${isActive ? "bg-orange-200/20 text-orange-100" : "bg-white/10 text-orange-300/60 border border-orange-300/20"}`}
-                      >
-                        {tab.count}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+                    )}
 
-              <div className="text-orange-200/80 font-bold bg-white/5 backdrop-blur-xl px-5 py-2 rounded-full border border-orange-400/20 shadow-sm">
-                Total Assets{" "}
-                <span className="text-orange-300 font-black text-lg ml-2">
-                  {data.totalAssets}
-                </span>
-              </div>
+                    <Icon
+                      className={`w-4 h-4 transition-colors duration-300 ${isActive ? "text-orange-400" : "text-zinc-600"}`}
+                    />
+
+                    <span
+                      className={`text-5xl font-black tabular-nums leading-none transition-colors duration-300 ${isActive ? "text-white" : "text-zinc-500"}`}
+                    >
+                      {count}
+                    </span>
+
+                    <span
+                      className={`text-[10px] uppercase tracking-[0.18em] font-bold transition-colors duration-300 ${isActive ? "text-orange-400/80" : "text-zinc-600"}`}
+                    >
+                      {label}
+                    </span>
+
+                    {/* Bottom accent line */}
+                    {isActive && (
+                      <div className="absolute bottom-0 inset-x-0 h-0.5 bg-linear-to-r from-transparent via-orange-500 to-transparent" />
+                    )}
+                  </motion.button>
+                );
+              })}
             </div>
 
+            {/* Asset grid */}
             <ResultsGrid activeAssets={activeAssets} activeTab={activeTab} />
           </motion.div>
         )}

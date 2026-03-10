@@ -10,7 +10,31 @@ import {
   Loader2,
   Link2,
   AlertCircle,
+  Github,
+  Linkedin,
 } from "lucide-react";
+
+function XLogo({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="currentColor" className={className}>
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.748l7.73-8.835L2.25 2.25h6.678l4.259 5.63 5.057-5.63Zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+    </svg>
+  );
+}
+
+const socialLinks = [
+  {
+    label: "GitHub",
+    href: "https://github.com/Rohan-2601/WebLoot",
+    Icon: Github,
+  },
+  { label: "X", href: "https://x.com/rjha72", Icon: XLogo },
+  {
+    label: "LinkedIn",
+    href: "https://www.linkedin.com/in/rohan-raj-5b5198294/",
+    Icon: Linkedin,
+  },
+];
 import { ResultsGrid } from "./ResultsGrid";
 
 interface AnalyzeData {
@@ -84,52 +108,97 @@ export function Analyzer() {
   return (
     <div className="w-full max-w-6xl mx-auto flex flex-col items-center">
       {/* ── Search Bar ── */}
-      <motion.form
+      <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        onSubmit={analyzeUrl}
-        className="w-full max-w-2xl relative group mb-16"
+        className="w-full max-w-2xl mb-16 flex flex-col items-stretch gap-3 "
       >
-        {/* Glow halo — only visible on focus */}
-        <div className="absolute -inset-px rounded-2xl bg-linear-to-r from-orange-500/40 to-amber-400/40 opacity-0 group-focus-within:opacity-100 blur-lg transition-opacity duration-500 pointer-events-none" />
+        <div className="flex items-center gap-4">
+          {/* Input + chip stacked together */}
+          <div className="flex-1 flex flex-col gap-2">
+            <form onSubmit={analyzeUrl} className="relative group">
+              {/* Glow halo — only visible on focus */}
+              <div className="absolute -inset-px rounded-2xl bg-linear-to-r from-orange-500/40 to-amber-400/40 opacity-0 group-focus-within:opacity-100 blur-lg transition-opacity duration-500 pointer-events-none" />
 
-        <div className="relative flex items-center gap-3 bg-zinc-900 border border-zinc-800 focus-within:border-orange-500/50 rounded-2xl transition-colors duration-300 shadow-2xl shadow-black/60 overflow-hidden">
-          <div className="pl-5 text-zinc-600 group-focus-within:text-orange-400 transition-colors duration-300 shrink-0">
-            <Link2 className="w-5 h-5" />
+              <div className="relative flex items-center gap-3 bg-zinc-900 border border-zinc-800 focus-within:border-orange-500/50 rounded-2xl transition-colors duration-300 shadow-2xl shadow-black/60 overflow-hidden">
+                <div className="pl-5 text-zinc-600 group-focus-within:text-orange-400 transition-colors duration-300 shrink-0">
+                  <Link2 className="w-5 h-5" />
+                </div>
+                <input
+                  type="url"
+                  required
+                  placeholder="https://example.com"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  className="flex-1 min-w-0 bg-transparent border-none outline-none text-white text-base placeholder:text-zinc-600 py-5"
+                />
+                <div className="p-2 shrink-0">
+                  <motion.button
+                    type="submit"
+                    disabled={loading}
+                    className="flex items-center gap-2 bg-orange-500 disabled:opacity-40 disabled:pointer-events-none text-white px-6 py-3 rounded-xl font-semibold text-sm shadow-lg shadow-orange-950/60 cursor-pointer whitespace-nowrap"
+                    whileHover={{ scale: 1.04, backgroundColor: "#fb8c00" }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                  >
+                    {loading ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Search className="w-4 h-4" />
+                    )}
+                    {loading ? "Looting..." : "Extract"}
+                  </motion.button>
+                </div>
+              </div>
+            </form>
+
+            {/* ── Try it suggestion ── */}
+            <div className="flex items-center justify-center gap-2 text-xs text-zinc-500 mt-3">
+              <span className="tracking-wide">Try an example:</span>
+              <motion.button
+                type="button"
+                onClick={() => setUrl("https://poly.app/")}
+                whileHover={{ scale: 1.04, y: -1 }}
+                whileTap={{ scale: 0.96 }}
+                transition={{ type: "spring", stiffness: 400, damping: 17 }}
+                className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-700 hover:border-orange-500/60 hover:text-orange-400 text-zinc-400 px-3 py-1 rounded-full transition-colors duration-200 cursor-pointer shadow-sm"
+              >
+                <span className="text-orange-500/80">⚡</span>
+                poly.app
+              </motion.button>
+            </div>
           </div>
-          <input
-            type="url"
-            required
-            placeholder="https://example.com"
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            className="flex-1 min-w-0 bg-transparent border-none outline-none text-white text-base placeholder:text-zinc-600 py-5"
-          />
-          <div className="p-2 shrink-0">
-            <button
-              type="submit"
-              disabled={loading}
-              className="flex items-center gap-2 bg-orange-500 hover:bg-orange-400 disabled:opacity-40 disabled:pointer-events-none text-white px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-200 shadow-lg shadow-orange-950/60 hover:shadow-orange-500/30 hover:-translate-y-px active:translate-y-0 active:scale-95 cursor-pointer whitespace-nowrap"
-            >
-              {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <Search className="w-4 h-4" />
-              )}
-              {loading ? "Looting..." : "Extract"}
-            </button>
+
+          {/* Social icons */}
+          <div className="flex items-center gap-3 shrink-0 self-start mt-3">
+            {socialLinks.map(({ label, href, Icon }) => (
+              <motion.a
+                key={label}
+                href={href}
+                aria-label={label}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-zinc-500 hover:text-orange-400 transition-colors duration-200"
+                whileHover={{ scale: 1.25, y: -3 }}
+                whileTap={{ scale: 0.85 }}
+                transition={{ type: "spring", stiffness: 400, damping: 17 }}
+              >
+                <Icon className="w-4.5 h-4.5" />
+              </motion.a>
+            ))}
           </div>
         </div>
-      </motion.form>
+      </motion.div>
 
       {/* ── Error ── */}
       <AnimatePresence>
         {error && (
           <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, y: -8, x: 0 }}
+            animate={{ opacity: 1, y: 0, x: [0, -8, 8, -5, 5, 0] }}
             exit={{ opacity: 0, scale: 0.96 }}
+            transition={{ duration: 0.45 }}
             className="flex items-center gap-3 bg-red-950/50 text-red-300 px-5 py-3.5 rounded-xl border border-red-500/20 mb-12 text-sm max-w-xl"
           >
             <AlertCircle className="w-4 h-4 shrink-0" />
@@ -156,7 +225,9 @@ export function Analyzer() {
                   <motion.button
                     key={id}
                     onClick={() => setActiveTab(id)}
+                    whileHover={{ y: -3 }}
                     whileTap={{ scale: 0.97 }}
+                    transition={{ type: "spring", stiffness: 350, damping: 20 }}
                     className={`relative flex flex-col items-center justify-center gap-2 py-7 rounded-2xl border cursor-pointer transition-all duration-300 overflow-hidden
                       ${
                         isActive

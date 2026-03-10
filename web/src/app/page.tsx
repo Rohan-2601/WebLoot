@@ -1,4 +1,15 @@
+"use client";
+import { motion, type Variants } from "framer-motion";
 import { Analyzer } from "@/components/Analyzer";
+
+const heroContainer: Variants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.1, delayChildren: 0.1 } },
+};
+const heroItem: Variants = {
+  hidden: { opacity: 0, y: 24 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: "easeOut" } },
+};
 
 export default function Home() {
   return (
@@ -16,14 +27,23 @@ export default function Home() {
 
         {/* Left-aligned hero text */}
         <div className="relative z-10 max-w-6xl mx-auto px-8 md:px-16 w-full">
-          <div className="max-w-2xl animate-in fade-in slide-in-from-left-8 duration-700">
+          <motion.div
+            className="max-w-2xl"
+            variants={heroContainer}
+            initial="hidden"
+            animate="show"
+          >
             {/* Eyebrow */}
-            <p className="text-orange-300/80 text-sm md:text-base font-semibold uppercase tracking-[0.25em] mb-5">
+            <motion.p
+              variants={heroItem}
+              className="text-orange-300/80 text-sm md:text-base font-semibold uppercase tracking-[0.25em] mb-5"
+            >
               Web Asset Extractor
-            </p>
+            </motion.p>
 
             {/* Title */}
-            <h1
+            <motion.h1
+              variants={heroItem}
               className="text-7xl md:text-9xl font-black tracking-tighter leading-none mb-6"
               style={{
                 backgroundImage:
@@ -35,21 +55,30 @@ export default function Home() {
               }}
             >
               WebLoot
-            </h1>
+            </motion.h1>
 
             {/* Divider */}
-            <div className="w-16 h-1 rounded-full bg-orange-400 mb-6 opacity-80" />
+            <motion.div
+              variants={heroItem}
+              className="w-16 h-1 rounded-full bg-orange-400 mb-6 opacity-80"
+            />
 
             {/* Subtitle */}
-            <p className="text-lg md:text-xl text-orange-50/75 font-medium leading-relaxed max-w-lg mb-10">
+            <motion.p
+              variants={heroItem}
+              className="text-lg md:text-xl text-orange-50/75 font-medium leading-relaxed max-w-lg mb-10"
+            >
               Paste any URL and instantly extract every image, icon, and video
               hidden deep inside the page source.
-            </p>
+            </motion.p>
 
             {/* CTA */}
-            <a
+            <motion.a
               href="#extract"
-              className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-orange-500 hover:bg-orange-400 text-white font-bold text-base shadow-xl shadow-orange-900/40 hover:shadow-orange-600/50 hover:-translate-y-1 active:scale-95 transition-all duration-300"
+              variants={heroItem}
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.96 }}
+              className="inline-flex items-center gap-3 px-8 py-4 rounded-full bg-orange-500 text-white font-bold text-base shadow-xl shadow-orange-900/40 hover:shadow-orange-600/50 cursor-pointer"
             >
               Start Extracting
               <svg
@@ -65,8 +94,8 @@ export default function Home() {
                   d="M19 9l-7 7-7-7"
                 />
               </svg>
-            </a>
-          </div>
+            </motion.a>
+          </motion.div>
         </div>
       </section>
 

@@ -1,36 +1,155 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# WebLoot
+
+A web asset extraction tool that lets you paste any URL and instantly pull every image, icon, and video embedded in that page. Built with a Next.js frontend and an Express backend.
+
+---
+
+![WebLoot Screenshot](./web/public/readme.png)
+
+---
+
+## Features
+
+- Extract all images, favicons/icons, and videos from any public URL
+- Duplicate asset detection to filter redundant results
+- One-click download for individual assets
+- Animated, responsive UI built with Tailwind CSS and Framer Motion
+- Clean REST API that can be consumed independently of the frontend
+
+---
+
+## Tech Stack
+
+**Frontend**
+- Next.js 16 (App Router)
+- React 19
+- TypeScript
+- Tailwind CSS v4
+- Framer Motion
+
+**Backend**
+- Node.js with Express 5
+- Cheerio (HTML parsing)
+- Axios (HTTP fetching)
+
+---
+
+## Project Structure
+
+```
+WebLoot/
+├── server/                  Express API
+│   ├── server.js            Entry point
+│   ├── routes/
+│   │   ├── analyzeRoute.js  POST /analyze
+│   │   └── downloadRoute.js GET /download
+│   ├── controllers/
+│   │   ├── analyzeController.js
+│   │   └── downloadController.js
+│   ├── services/
+│   │   ├── fetchSite.js     Fetches raw HTML from a URL
+│   │   ├── extractImages.js Parses <img> tags and srcset
+│   │   ├── extractIcons.js  Parses <link rel="icon"> tags
+│   │   └── extractVideos.js Parses <video> and <source> tags
+│   └── analyzers/
+│       └── detectDuplicates.js
+└── web/                     Next.js frontend
+    └── src/
+        ├── app/
+        │   └── page.tsx     Home page
+        └── components/
+            ├── Analyzer.tsx  URL input + results layout
+            └── ResultsGrid.tsx Asset grid with download buttons
+```
+
+---
 
 ## Getting Started
 
-First, run the development server:
+### Prerequisites
+
+- Node.js 18 or higher
+- npm
+
+### 1. Clone the repository
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/Rohan-2601/WebLoot.git
+cd WebLoot
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Start the backend
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+cd server
+npm install
+npm run dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The API will be available at `http://localhost:5000`.
 
-## Learn More
+### 3. Start the frontend
 
-To learn more about Next.js, take a look at the following resources:
+Open a second terminal:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+cd web
+npm install
+npm run dev
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+The app will be available at `http://localhost:3000`.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## API Reference
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### POST /analyze
+
+Fetches the given URL and returns all discovered assets.
+
+**Request body**
+
+```json
+{
+  "url": "https://example.com"
+}
+```
+
+**Response**
+
+```json
+{
+  "images": ["https://..."],
+  "icons": ["https://..."],
+  "videos": ["https://..."],
+  "duplicates": ["https://..."],
+  "totalAssets": 42
+}
+```
+
+### GET /download?url=
+
+Proxies and streams the asset file to the client as an attachment.
+
+**Query parameter**
+
+| Parameter | Type   | Description              |
+|-----------|--------|--------------------------|
+| url       | string | The direct URL of the asset to download |
+
+---
+
+## Environment Variables
+
+Create a `.env.local` file inside the `web/` directory to override the default API URL:
+
+```
+NEXT_PUBLIC_API_URL=http://localhost:5000
+```
+
+---
+
+## License
+
+ISC

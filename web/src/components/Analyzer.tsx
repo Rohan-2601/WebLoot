@@ -171,7 +171,7 @@ export function Analyzer() {
           </div>
 
           {/* Social icons */}
-          <div className="flex items-center gap-3 shrink-0 self-start mt-3">
+          <div className="flex items-center gap-3 shrink-0 self-start mt-5">
             {socialLinks.map(({ label, href, Icon }) => (
               <motion.a
                 key={label}

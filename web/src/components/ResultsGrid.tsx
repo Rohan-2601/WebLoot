@@ -31,7 +31,7 @@ export function ResultsGrid({ activeAssets, activeTab }: ResultsGridProps) {
 
   if (activeAssets.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-36 gap-5">
+      <div className="flex flex-col items-center justify-center py-20 sm:py-36 gap-5">
         <div className="w-16 h-16 rounded-2xl bg-zinc-900 border border-zinc-800 flex items-center justify-center">
           <Shapes className="w-6 h-6 text-zinc-700" />
         </div>
@@ -89,11 +89,11 @@ export function ResultsGrid({ activeAssets, activeTab }: ResultsGridProps) {
             />
           )}
 
-          {/* Scrim — fades in on hover */}
-          <div className="absolute inset-0 bg-linear-to-t from-black/75 via-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          {/* Scrim — always visible on mobile, hover-reveal on desktop */}
+          <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/10 to-transparent opacity-70 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-300" />
 
-          {/* Action bar — slides up on hover */}
-          <div className="absolute inset-x-0 bottom-0 flex items-center justify-between px-2.5 py-2 translate-y-1 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 ease-out">
+          {/* Action bar — always visible on mobile, slides up on desktop hover */}
+          <div className="absolute inset-x-0 bottom-0 flex items-center justify-between px-2.5 py-2 sm:translate-y-1 sm:opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 ease-out">
             <span className="text-[9px] font-medium text-white/40 truncate max-w-[50%] leading-none select-none">
               {getLabel(assetUrl)}
             </span>
@@ -104,16 +104,16 @@ export function ResultsGrid({ activeAssets, activeTab }: ResultsGridProps) {
                 rel="noopener noreferrer"
                 onClick={(e) => e.stopPropagation()}
                 title="Open original"
-                className="w-6 h-6 flex items-center justify-center rounded-lg bg-white/10 hover:bg-white/20 border border-white/8 text-white/70 hover:text-white hover:scale-110 active:scale-95 transition-all cursor-pointer"
+                className="w-7 h-7 sm:w-6 sm:h-6 flex items-center justify-center rounded-lg bg-white/15 hover:bg-white/25 border border-white/10 text-white/80 hover:text-white active:scale-95 transition-all cursor-pointer"
               >
-                <Maximize2 className="w-2.5 h-2.5" />
+                <Maximize2 className="w-3 h-3 sm:w-2.5 sm:h-2.5" />
               </a>
               <button
                 onClick={() => handleDownload(assetUrl)}
                 title="Download"
-                className="w-6 h-6 flex items-center justify-center rounded-lg bg-orange-500 hover:bg-orange-400 border border-orange-400/20 text-white hover:scale-110 active:scale-95 transition-all cursor-pointer shadow-md shadow-orange-950/60"
+                className="w-7 h-7 sm:w-6 sm:h-6 flex items-center justify-center rounded-lg bg-orange-500 hover:bg-orange-400 border border-orange-400/20 text-white active:scale-95 transition-all cursor-pointer shadow-md shadow-orange-950/60"
               >
-                <ArrowDownToLine className="w-2.5 h-2.5" />
+                <ArrowDownToLine className="w-3 h-3 sm:w-2.5 sm:h-2.5" />
               </button>
             </div>
           </div>

@@ -112,7 +112,7 @@ export function Analyzer() {
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className="w-full max-w-2xl mb-16 flex flex-col items-stretch gap-3 "
+        className="w-full max-w-2xl mb-10 sm:mb-16 flex flex-col items-stretch gap-3"
       >
         <div className="flex items-center gap-4">
           {/* Input + chip stacked together */}
@@ -128,16 +128,16 @@ export function Analyzer() {
                 <input
                   type="url"
                   required
-                  placeholder="https://example.com"
+                  placeholder="Paste a URL..."
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
-                  className="flex-1 min-w-0 bg-transparent border-none outline-none text-white text-base placeholder:text-zinc-600 py-5"
+                  className="flex-1 min-w-0 bg-transparent border-none outline-none text-white text-sm sm:text-base placeholder:text-zinc-600 py-4 sm:py-5"
                 />
                 <div className="p-2 shrink-0">
                   <motion.button
                     type="submit"
                     disabled={loading}
-                    className="flex items-center gap-2 bg-orange-500 disabled:opacity-40 disabled:pointer-events-none text-white px-6 py-3 rounded-xl font-semibold text-sm shadow-lg shadow-orange-950/60 cursor-pointer whitespace-nowrap"
+                    className={`flex items-center gap-2 bg-orange-500 disabled:opacity-40 disabled:pointer-events-none text-white px-4 sm:px-6 py-3 rounded-xl font-semibold text-sm shadow-lg shadow-orange-950/60 cursor-pointer whitespace-nowrap`}
                     whileHover={{ scale: 1.04, backgroundColor: "#fb8c00" }}
                     whileTap={{ scale: 0.95 }}
                     transition={{ type: "spring", stiffness: 400, damping: 17 }}
@@ -154,7 +154,7 @@ export function Analyzer() {
             </form>
 
             {/* ── Try it suggestion ── */}
-            <div className="flex items-center justify-center gap-2 text-xs text-zinc-500 mt-3">
+            <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-zinc-500 mt-3">
               <span className="tracking-wide">Try an example:</span>
               <motion.button
                 type="button"
@@ -170,8 +170,8 @@ export function Analyzer() {
             </div>
           </div>
 
-          {/* Social icons */}
-          <div className="flex items-center gap-3 shrink-0 self-start mt-5">
+          {/* Social icons — hidden on small screens to avoid squishing the input */}
+          <div className="hidden sm:flex items-center gap-3 shrink-0 self-start mt-5">
             {socialLinks.map(({ label, href, Icon }) => (
               <motion.a
                 key={label}
@@ -218,7 +218,7 @@ export function Analyzer() {
             className="w-full"
           >
             {/* Stat-card tabs */}
-            <div className="grid grid-cols-3 gap-3 mb-10">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-8 sm:mb-10">
               {tabs.map(({ id, icon: Icon, label, count }) => {
                 const isActive = activeTab === id;
                 return (
@@ -228,7 +228,7 @@ export function Analyzer() {
                     whileHover={{ y: -3 }}
                     whileTap={{ scale: 0.97 }}
                     transition={{ type: "spring", stiffness: 350, damping: 20 }}
-                    className={`relative flex flex-col items-center justify-center gap-2 py-7 rounded-2xl border cursor-pointer transition-all duration-300 overflow-hidden
+                    className={`relative flex flex-col items-center justify-center gap-1.5 sm:gap-2 py-5 sm:py-7 rounded-xl sm:rounded-2xl border cursor-pointer transition-all duration-300 overflow-hidden
                       ${
                         isActive
                           ? "bg-orange-500/8 border-orange-500/40 shadow-xl shadow-orange-950/40"
@@ -253,13 +253,13 @@ export function Analyzer() {
                     />
 
                     <span
-                      className={`text-5xl font-black tabular-nums leading-none transition-colors duration-300 ${isActive ? "text-white" : "text-zinc-500"}`}
+                      className={`text-3xl sm:text-5xl font-black tabular-nums leading-none transition-colors duration-300 ${isActive ? "text-white" : "text-zinc-500"}`}
                     >
                       {count}
                     </span>
 
                     <span
-                      className={`text-[10px] uppercase tracking-[0.18em] font-bold transition-colors duration-300 ${isActive ? "text-orange-400/80" : "text-zinc-600"}`}
+                      className={`text-[9px] sm:text-[10px] uppercase tracking-widest sm:tracking-[0.18em] font-bold transition-colors duration-300 ${isActive ? "text-orange-400/80" : "text-zinc-600"}`}
                     >
                       {label}
                     </span>

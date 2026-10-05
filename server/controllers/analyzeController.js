@@ -1,48 +1,49 @@
 import { fetchSite } from "../services/fetchSite.js";
-import { extractImages } from "../services/extractImages.js";
-import { extractIcons } from "../services/extractIcons.js";
-import { extractVideos } from "../services/extractVideos.js";
-import { detectDuplicates } from "../analyzers/detectDuplicates.js";
+import { fetchSiteWithBrowser } from "../services/browserService.js";
+import { runExtractionEngine } from "../engine/index.js";
 
 export async function analyze(req, res) {
-  const { url } = req.body;
+  const { url, deepScan } = req.body;
 
   if (!url) {
     return res.status(400).json({ error: "URL is required" });
   }
 
-  let parsedUrl;
   try {
-    parsedUrl = new URL(url);
-  } catch {
-    return res.status(400).json({ error: "Invalid URL" });
-  }
+    let html;
+    let networkAssets = [];
+    if (deepScan) {
+      const result = await fetchSiteWithBrowser(url);
+      html = result.html;
+      networkAssets = result.networkAssets;
+    } else {
+      html = await fetchSite(url);
+    }
 
-  if (!["http:", "https:"].includes(parsedUrl.protocol)) {
-    return res
-      .status(400)
-      .json({ error: "Only HTTP and HTTPS URLs are allowed" });
-  }
+    const extractionResult = runExtractionEngine(html, url, networkAssets);
 
-  try {
-    const html = await fetchSite(url);
-
-    const images = extractImages(html, url);
-    const icons = extractIcons(html, url);
-    const videos = extractVideos(html, url);
-
-    const duplicates = detectDuplicates(images);
-
-    res.json({
-      images,
-      icons,
-      videos,
-      duplicates,
-      totalAssets: images.length + icons.length + videos.length,
-    });
+    res.json(extractionResult);
   } catch (err) {
-    res
-      .status(500)
-      .json({ error: "Failed to analyze the site", details: err.message });
+    let statusCode = 502; // Bad Gateway as default for fetch failures
+    let errorMessage = "Failed to analyze the site";
+
+    const msg = err.message || "";
+    if (msg.includes("Invalid URL") || msg.includes("Only HTTP")) {
+      statusCode = 400;
+      errorMessage = msg;
+    } else if (msg.includes("not allowed") || msg.includes("private") || msg.includes("forbidden") || msg.includes("Localhost")) {
+      statusCode = 403;
+      errorMessage = "Access to internal networks is forbidden";
+    } else if (err.response) {
+      statusCode = err.response.status >= 400 && err.response.status < 500 ? 400 : 502;
+      errorMessage = `External site returned status ${err.response.status}`;
+    } else if (err.code === "ECONNABORTED" || msg.includes("timeout") || msg.includes("redirects")) {
+      statusCode = 504;
+      errorMessage = "External site timed out or too many redirects";
+    }
+
+    res.status(statusCode).json({ error: errorMessage });
   }
 }
+
+

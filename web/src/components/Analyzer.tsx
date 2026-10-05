@@ -37,21 +37,33 @@ const socialLinks = [
 ];
 import { ResultsGrid } from "./ResultsGrid";
 
+interface Asset {
+  url: string;
+  type: string;
+  source: string;
+  format?: string;
+  width?: number;
+  height?: number;
+  size?: number;
+  contentType?: string;
+}
+
 interface AnalyzeData {
   images: string[];
   icons: string[];
   videos: string[];
   totalAssets: number;
+  assets?: Asset[];
 }
 
 export function Analyzer() {
   const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(false);
+  const [deepScan, setDeepScan] = useState(false);
+  const [status, setStatus] = useState("");
   const [error, setError] = useState("");
   const [data, setData] = useState<AnalyzeData | null>(null);
-  const [activeTab, setActiveTab] = useState<"images" | "icons" | "videos">(
-    "images",
-  );
+  const [activeTab, setActiveTab] = useState<"all" | "image" | "video" | "icon" | "other">("all");
 
   const analyzeUrl = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,50 +71,100 @@ export function Analyzer() {
     setLoading(true);
     setError("");
     setData(null);
+    setStatus("Initializing scan...");
+    
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+      
+      // Simulate progress for Deep Scan
+      let progressTimer: any;
+      if (deepScan) {
+        const steps = [
+          "Opening page...",
+          "Rendering page...",
+          "Scanning DOM...",
+          "Scanning network resources...",
+          "Processing assets...",
+          "Removing duplicates..."
+        ];
+        let step = 0;
+        progressTimer = setInterval(() => {
+          setStatus(steps[step]);
+          step = Math.min(step + 1, steps.length - 1);
+        }, 3000);
+      } else {
+        setStatus("Extracting HTML resources...");
+      }
+
       const response = await fetch(`${apiUrl}/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url }),
+        body: JSON.stringify({ url, deepScan }),
       });
+      
+      if (progressTimer) clearInterval(progressTimer);
+      setStatus("Done");
+
       const result = await response.json();
-      if (!response.ok)
+      
+      if (!response.ok) {
         throw new Error(result.error || "Failed to analyze URL");
+      }
+      
       setData(result);
-      if (result.images.length === 0 && result.icons.length > 0)
-        setActiveTab("icons");
-      else if (result.images.length === 0 && result.videos.length > 0)
-        setActiveTab("videos");
-      else setActiveTab("images");
+      setActiveTab("all");
     } catch (err: any) {
       setError(err.message);
+      setStatus("");
     } finally {
       setLoading(false);
     }
   };
 
-  const activeAssets = data ? data[activeTab] : [];
+  const assets = data?.assets || [];
+  
+  // Backwards compatibility for older API responses
+  const normalizedAssets: Asset[] = assets.length > 0 ? assets : [
+    ...(data?.images || []).map(u => ({ url: u, type: 'image', source: 'legacy' })),
+    ...(data?.icons || []).map(u => ({ url: u, type: 'icon', source: 'legacy' })),
+    ...(data?.videos || []).map(u => ({ url: u, type: 'video', source: 'legacy' })),
+  ];
+
+  const activeAssets = activeTab === "all" 
+    ? normalizedAssets 
+    : normalizedAssets.filter(a => a.type === activeTab || (activeTab === "other" && !["image", "video", "icon"].includes(a.type)));
 
   const tabs = [
     {
-      id: "images" as const,
+      id: "all" as const,
+      icon: Shapes,
+      label: "All",
+      count: normalizedAssets.length,
+    },
+    {
+      id: "image" as const,
       icon: ImageIcon,
       label: "Images",
-      count: data?.images.length ?? 0,
+      count: normalizedAssets.filter(a => a.type === "image").length,
     },
     {
-      id: "icons" as const,
-      icon: Shapes,
-      label: "Icons",
-      count: data?.icons.length ?? 0,
-    },
-    {
-      id: "videos" as const,
+      id: "video" as const,
       icon: Video,
       label: "Videos",
-      count: data?.videos.length ?? 0,
+      count: normalizedAssets.filter(a => a.type === "video").length,
     },
+    {
+      id: "icon" as const,
+      icon: Shapes,
+      label: "Icons",
+      count: normalizedAssets.filter(a => a.type === "icon").length,
+    },
+    {
+      id: "other" as const,
+      icon: Link2,
+      label: "Other",
+      count: normalizedAssets.filter(a => !["image", "video", "icon"].includes(a.type)).length,
+    }
   ];
 
   return (
@@ -115,10 +177,8 @@ export function Analyzer() {
         className="w-full max-w-2xl mb-10 sm:mb-16 flex flex-col items-stretch gap-3"
       >
         <div className="flex items-center gap-4">
-          {/* Input + chip stacked together */}
           <div className="flex-1 flex flex-col gap-2">
             <form onSubmit={analyzeUrl} className="relative group">
-              {/* Glow halo — only visible on focus */}
               <div className="absolute -inset-px rounded-2xl bg-linear-to-r from-orange-500/40 to-amber-400/40 opacity-0 group-focus-within:opacity-100 blur-lg transition-opacity duration-500 pointer-events-none" />
 
               <div className="relative flex items-center gap-3 bg-zinc-900 border border-zinc-800 focus-within:border-orange-500/50 rounded-2xl transition-colors duration-300 shadow-2xl shadow-black/60 overflow-hidden">
@@ -152,25 +212,41 @@ export function Analyzer() {
                 </div>
               </div>
             </form>
+            
+            <div className="flex items-center justify-between mt-3 px-1">
+              {/* Scan Mode Toggles */}
+              <div className="flex gap-2 bg-zinc-900/60 p-1 rounded-lg border border-zinc-800">
+                <button
+                  type="button"
+                  onClick={() => setDeepScan(false)}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                    !deepScan ? 'bg-orange-500 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'
+                  }`}
+                  title="Fast HTML-based extraction"
+                >
+                  Quick Scan
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDeepScan(true)}
+                  className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all ${
+                    deepScan ? 'bg-orange-500 text-white shadow-sm' : 'text-zinc-500 hover:text-zinc-300'
+                  }`}
+                  title="Loads the page in a real browser to discover dynamically loaded assets"
+                >
+                  Deep Scan
+                </button>
+              </div>
 
-            {/* ── Try it suggestion ── */}
-            <div className="flex flex-wrap items-center justify-center gap-2 text-xs text-zinc-500 mt-3">
-              <span className="tracking-wide">Try an example:</span>
-              <motion.button
-                type="button"
-                onClick={() => setUrl("https://poly.app/")}
-                whileHover={{ scale: 1.04, y: -1 }}
-                whileTap={{ scale: 0.96 }}
-                transition={{ type: "spring", stiffness: 400, damping: 17 }}
-                className="flex items-center gap-1.5 bg-zinc-900 border border-zinc-700 hover:border-orange-500/60 hover:text-orange-400 text-zinc-400 px-3 py-1 rounded-full transition-colors duration-200 cursor-pointer shadow-sm"
-              >
-                <span className="text-orange-500/80">⚡</span>
-                poly.app
-              </motion.button>
+              {/* Status Text */}
+              {loading && (
+                <div className="text-orange-400/80 text-xs font-mono animate-pulse">
+                  {status}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Social icons — hidden on small screens to avoid squishing the input */}
           <div className="hidden sm:flex items-center gap-3 shrink-0 self-start mt-5">
             {socialLinks.map(({ label, href, Icon }) => (
               <motion.a
@@ -217,57 +293,33 @@ export function Analyzer() {
             transition={{ duration: 0.45 }}
             className="w-full"
           >
-            {/* Stat-card tabs */}
-            <div className="grid grid-cols-3 gap-2 sm:gap-3 mb-8 sm:mb-10">
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 mb-8 sm:mb-10">
               {tabs.map(({ id, icon: Icon, label, count }) => {
                 const isActive = activeTab === id;
                 return (
                   <motion.button
                     key={id}
                     onClick={() => setActiveTab(id)}
-                    whileHover={{ y: -3 }}
+                    whileHover={{ y: -2 }}
                     whileTap={{ scale: 0.97 }}
-                    transition={{ type: "spring", stiffness: 350, damping: 20 }}
-                    className={`relative flex flex-col items-center justify-center gap-1.5 sm:gap-2 py-5 sm:py-7 rounded-xl sm:rounded-2xl border cursor-pointer transition-all duration-300 overflow-hidden
+                    className={`relative flex items-center gap-2 px-5 py-3 rounded-xl border cursor-pointer transition-all duration-300 overflow-hidden
                       ${
                         isActive
-                          ? "bg-orange-500/8 border-orange-500/40 shadow-xl shadow-orange-950/40"
-                          : "bg-zinc-900/50 border-zinc-800/80 hover:border-zinc-700 hover:bg-zinc-900"
+                          ? "bg-orange-500/10 border-orange-500/40 shadow-xl shadow-orange-950/40 text-white"
+                          : "bg-zinc-900/50 border-zinc-800/80 hover:border-zinc-700 text-zinc-500 hover:text-zinc-300"
                       }`}
                   >
-                    {/* Active gradient wash */}
                     {isActive && (
                       <motion.div
                         layoutId="tabGlow"
                         className="absolute inset-0 bg-linear-to-b from-orange-500/10 via-transparent to-transparent pointer-events-none"
-                        transition={{
-                          type: "spring",
-                          stiffness: 400,
-                          damping: 30,
-                        }}
                       />
                     )}
-
-                    <Icon
-                      className={`w-4 h-4 transition-colors duration-300 ${isActive ? "text-orange-400" : "text-zinc-600"}`}
-                    />
-
-                    <span
-                      className={`text-3xl sm:text-5xl font-black tabular-nums leading-none transition-colors duration-300 ${isActive ? "text-white" : "text-zinc-500"}`}
-                    >
+                    <Icon className={`w-4 h-4 ${isActive ? "text-orange-400" : ""}`} />
+                    <span className="font-semibold text-sm">{label}</span>
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${isActive ? "bg-orange-500/20 text-orange-300" : "bg-zinc-800 text-zinc-400"}`}>
                       {count}
                     </span>
-
-                    <span
-                      className={`text-[9px] sm:text-[10px] uppercase tracking-widest sm:tracking-[0.18em] font-bold transition-colors duration-300 ${isActive ? "text-orange-400/80" : "text-zinc-600"}`}
-                    >
-                      {label}
-                    </span>
-
-                    {/* Bottom accent line */}
-                    {isActive && (
-                      <div className="absolute bottom-0 inset-x-0 h-0.5 bg-linear-to-r from-transparent via-orange-500 to-transparent" />
-                    )}
                   </motion.button>
                 );
               })}
